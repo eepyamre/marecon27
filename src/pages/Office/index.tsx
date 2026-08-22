@@ -1,66 +1,55 @@
 import { ARCHIVE_URL, VOLUNTEER_FORM_LINK } from '@/constants';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import cn from 'classnames';
+import { useEffect, useRef } from 'preact/hooks';
 
 import comfyImg from '@/assets/office/Comfy.png';
 import nawniImg from '@/assets/office/Nawni.png';
 import smileyImg from '@/assets/office/Smiley.png';
+import logo from '@/assets/office/non.png';
+import placeholder from '@/assets/paceholder.png';
 
 import css from './styles.module.scss';
-
-/**
- * MARECON 2027 precon — Dept. of Mascot Operations, Floor 7.
- *
- * Isometric office floor (2:1 projection). Nawni and Smiley wander between
- * the desk rows with a squash-and-stretch hop instead of real walk frames;
- * Comfy is laying in the corner. On break. Unauthorized.
- *
- * The whole scene is one SVG: walls, posters, desks and the cooler are flat
- * corporate vector boxes, the three mascots are <image> sprites inside the
- * same coordinate space, depth-sorted by their iso x+y every frame.
- *
- * Tuning lives in the constants right below.
- */
 
 // --- iso geometry -----------------------------------------------------------
 const HX = 32; // half tile width (px)
 const HY = 16; // half tile height (px)
-const OX = 480; // svg-space origin of floor corner (0,0)
-const OY = 216;
-const ROOM_W = 14; // tiles along x (right-down)
-const ROOM_D = 10; // tiles along y (left-down)
+const OX = 560; // svg-space origin of floor corner (0,0)
+const OY = 240;
+const ROOM_W = 16; // tiles along x (right-down)
+const ROOM_D = 12; // tiles along y (left-down)
 const WALL_H = 150;
-const SCENE_W = 960;
-const SCENE_H = 700;
+const SCENE_W = 1160;
+const SCENE_H = 780;
 
 const px = (x: number, y: number) => OX + (x - y) * HX;
 const py = (x: number, y: number) => OY + (x + y) * HY;
 
 // things nearer the viewer render a touch bigger
 const depthScale = (x: number, y: number) =>
-  0.9 + ((x + y) / (ROOM_W + ROOM_D)) * 0.22;
+  0.88 + ((x + y) / (ROOM_W + ROOM_D)) * 0.24;
 
 // --- layout -----------------------------------------------------------------
 type Rect = [number, number, number, number]; // x, y, w, d (tiles)
 const DESKS_ROW1: Rect[] = [
-  [1.6, 2.2, 2.4, 1.2],
-  [5.5, 2.2, 2.4, 1.2],
-  [9.4, 2.2, 2.4, 1.2],
+  [2.0, 2.2, 2.4, 1.2],
+  [6.3, 2.2, 2.4, 1.2],
+  [10.6, 2.2, 2.4, 1.2],
 ];
 const DESKS_ROW2: Rect[] = [
-  [1.5, 5.9, 2.0, 1.2],
-  [4.2, 5.9, 2.0, 1.2],
-  [8.8, 5.9, 2.0, 1.2],
-  [11.5, 5.9, 2.0, 1.2],
+  [1.8, 6.4, 2.0, 1.2],
+  [4.9, 6.4, 2.0, 1.2],
+  [9.6, 6.4, 2.0, 1.2],
+  [12.7, 6.4, 2.0, 1.2],
 ];
-const COOLER: Rect = [12.5, 8.5, 1.0, 1.0];
-const COMFY_PAD: Rect = [0.9, 8.7, 2.2, 1.2]; // she is furniture now
+const COOLER: Rect = [14.3, 9.9, 1.0, 1.0];
+const COMFY_PAD: Rect = [1.0, 9.8, 2.4, 1.3]; // she is furniture now
 
 const BLOCKED: Rect[] = [...DESKS_ROW1, ...DESKS_ROW2, COOLER, COMFY_PAD];
 
 const MIN_X = 0.8,
-  MAX_X = 13.4,
-  MIN_Y = 3.7,
-  MAX_Y = 9.9;
+  MAX_X = 15.4,
+  MIN_Y = 3.9,
+  MAX_Y = 11.3;
 
 const DESK_H = 40;
 const PART_H = 62;
@@ -82,10 +71,8 @@ interface Pony {
   phase: number;
   speed: number; // tiles / s
   startleUntil: number;
-  msgUntil: number;
   g: SVGGElement | null;
   inner: SVGGElement | null;
-  tag: SVGTextElement | null;
 }
 
 const inRect = (x: number, y: number, r: Rect, m = 0.35) =>
@@ -190,9 +177,10 @@ interface BoxProps {
   top: string;
   left: string;
   right: string;
+  className?: string;
 }
 
-const IsoBox = ({ r, h = 44, z = 0, top, left, right }: BoxProps) => {
+const IsoBox = ({ r, h = 44, z = 0, top, left, right, ...props }: BoxProps) => {
   const [x, y, w, d] = r;
   // painter key: front corner x+y, biased slightly back so ponies at the same
   // depth plane draw in front of furniture rather than behind it
@@ -206,7 +194,7 @@ const IsoBox = ({ r, h = 44, z = 0, top, left, right }: BoxProps) => {
     ct = Pt(x + w, y + d, z + h),
     et = Pt(x, y + d, z + h);
   return (
-    <g data-key={key.toFixed(2)}>
+    <g data-key={key.toFixed(2)} {...props}>
       <polygon points={poly([et, ct, c, e])} fill={left} />
       <polygon points={poly([bt, ct, c, b])} fill={right} />
       <polygon points={poly([at, bt, ct, et])} fill={top} />
@@ -214,55 +202,58 @@ const IsoBox = ({ r, h = 44, z = 0, top, left, right }: BoxProps) => {
   );
 };
 
+// posters: kitten placeholders sheared into the wall plane.
+// image width = horizontal extent of the wall span (HX per tile); the shear
+// turns that into along-wall length. (Using the true wall length here would
+// overshoot the frame — that bug put the kittens outside their frames.)
+const POSTER_A = { x1: 2.6, x2: 5.6, zTop: 122, zBot: 24 };
+const POSTER_B = { x1: 7.6, x2: 11.2, zTop: 120, zBot: 20 };
+const posterW = (p: { x1: number; x2: number }) => (p.x2 - p.x1) * HX;
+const posterH = (p: { zTop: number; zBot: number }) => p.zTop - p.zBot;
+const posterXf = (p: { x1: number; zTop: number }) =>
+  'matrix(1,0.5,0,1,' + px(p.x1, 0) + ',' + (py(p.x1, 0) - p.zTop) + ')';
+const posterFramePts = (p: typeof POSTER_A) =>
+  poly([
+    [px(p.x1 - 0.1, 0), py(p.x1 - 0.1, 0) - p.zTop - 6],
+    [px(p.x2 + 0.1, 0), py(p.x2 + 0.1, 0) - p.zTop - 6],
+    [px(p.x2 + 0.1, 0), py(p.x2 + 0.1, 0) - p.zBot + 6],
+    [px(p.x1 - 0.1, 0), py(p.x1 - 0.1, 0) - p.zBot + 6],
+  ]);
+
+export const ZFlow = () => {
+  return (
+    <>
+      <text class={cn(css.z, css.z1)} x="-64" y="-80">
+        z
+      </text>
+      <text class={cn(css.z, css.z2)} x="-72" y="-86">
+        z
+      </text>
+      <text class={cn(css.z, css.z3)} x="-80" y="-92">
+        Z
+      </text>
+    </>
+  );
+};
+
+export const Timer = () => {
+  const target = 1803027600;
+
+  const now = Math.floor(Date.now() / 1000);
+  const secondsLeft = Math.max(target - now, 0);
+  const daysLeft = Math.floor(secondsLeft / 86400);
+
+  return <>{daysLeft} days</>;
+};
+
 export const Office = () => {
   const sortRef = useRef<SVGGElement>(null);
   const nawniRef = useRef<SVGGElement>(null);
   const nawniInner = useRef<SVGGElement>(null);
-  const nawniTag = useRef<SVGTextElement>(null);
   const smileyRef = useRef<SVGGElement>(null);
   const smileyInner = useRef<SVGGElement>(null);
-  const smileyTag = useRef<SVGTextElement>(null);
 
-  const [sweeping, setSweeping] = useState(false);
-
-  // sim state lives outside react; handlers reach it through this ref
   const poniesRef = useRef<Pony[]>([]);
-
-  // supervisor sweep: a light band crosses the floor every half minute-ish
-  useEffect(() => {
-    let offT = 0;
-    let t = 0;
-    const loop = () => {
-      setSweeping(true);
-      offT = window.setTimeout(() => {
-        setSweeping(false);
-        t = window.setTimeout(loop, 26000 + Math.random() * 16000);
-      }, 2800);
-    };
-    t = window.setTimeout(loop, 14000);
-    return () => {
-      window.clearTimeout(t);
-      window.clearTimeout(offT);
-    };
-  }, []);
-
-  // efficiency tag jitter (sweep pins everyone at 99.9, obviously)
-  useEffect(() => {
-    const set = () => {
-      for (const p of poniesRef.current) {
-        if (!p.tag) continue;
-        if (p.msgUntil > performance.now()) continue;
-        p.tag.textContent =
-          p.name +
-          ' · ' +
-          (sweeping ? '99.9' : (94.5 + Math.random() * 4.8).toFixed(1)) +
-          '%';
-      }
-    };
-    set();
-    const id = window.setInterval(set, 1400);
-    return () => window.clearInterval(id);
-  }, [sweeping]);
 
   // --- walker sim -------------------------------------------------------------
   useEffect(() => {
@@ -273,8 +264,8 @@ export const Office = () => {
         w: 144,
         h: 118,
         facesRight: true,
-        x: 7.4,
-        y: 8.6,
+        x: 8.2,
+        y: 9.8,
         path: [],
         mode: 'idle',
         idleUntil: 0,
@@ -282,10 +273,8 @@ export const Office = () => {
         phase: 0,
         speed: 1.6,
         startleUntil: 0,
-        msgUntil: 0,
         g: nawniRef.current,
         inner: nawniInner.current,
-        tag: nawniTag.current,
       },
       {
         name: 'SMILEY',
@@ -293,8 +282,8 @@ export const Office = () => {
         w: 132,
         h: 112,
         facesRight: true,
-        x: 9.8,
-        y: 8.9,
+        x: 11.0,
+        y: 10.1,
         path: [],
         mode: 'idle',
         idleUntil: 800,
@@ -302,10 +291,8 @@ export const Office = () => {
         phase: 1.4,
         speed: 1.2,
         startleUntil: 0,
-        msgUntil: 0,
         g: smileyRef.current,
         inner: smileyInner.current,
-        tag: smileyTag.current,
       },
     ];
     poniesRef.current = ponies;
@@ -326,11 +313,10 @@ export const Office = () => {
         let hop = 0;
 
         if (p.startleUntil > now) {
-          // panic wiggle after an incident report
-          squash = 1 + Math.sin(now * 0.055) * 0.13;
-        } else if (sweeping) {
-          // freeze where you are and look MAXIMALLY busy
-          squash = 1 + Math.sin(now * 0.04 + p.phase) * 0.07;
+          // pure startle-bounce: squish, hop, wiggle
+          p.phase += dt * 18;
+          squash = 1 + Math.sin(p.phase) * 0.16;
+          hop = Math.abs(Math.sin(p.phase * 0.5)) * 10;
         } else if (p.mode === 'idle') {
           squash = 1 + Math.sin(now * 0.003 + p.phase) * 0.02;
           if (now > p.idleUntil) {
@@ -384,7 +370,7 @@ export const Office = () => {
           'translate(0,' +
             (-hop).toFixed(1) +
             ') scale(' +
-            (p.facing * (p.facesRight ? 1 : -1) * ds).toFixed(3) +
+            (p.facing * (p.facesRight ? -1 : 1) * ds).toFixed(3) +
             ',' +
             (squash * ds).toFixed(3) +
             ')',
@@ -412,45 +398,22 @@ export const Office = () => {
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [sweeping]);
+  }, []);
 
-  const fileIncident = (which: string) => {
+  const startle = (which: string) => {
     const p = poniesRef.current.find((q) => q.name === which);
-    if (!p || !p.tag) return;
-    const now = performance.now();
-    p.startleUntil = now + 900;
-    p.msgUntil = now + 1800;
-    p.tag.textContent = 'INCIDENT FILED // -0.3 MORALE';
-    p.tag.classList.add(css.tagBad);
-    window.setTimeout(() => p.tag && p.tag.classList.remove(css.tagBad), 1800);
+    if (!p) return;
+    p.startleUntil = performance.now() + 850;
   };
 
   return (
-    <div class={css.stage + (sweeping ? ' ' + css.sweeping : '')}>
-      <div class={css.scan} />
-
+    <div class={css.stage}>
       <header class={css.topbar}>
-        <div>
-          MARECON 2027 // PRECON PORTAL — DEPT. OF MASCOT OPERATIONS · FLOOR 7
-        </div>
-        <div class={sweeping ? css.fineWarn : css.fine}>
-          <span class={css.fineDot} />
-          {sweeping
-            ? 'SUPERVISOR SWEEP IN PROGRESS'
-            : 'STATUS: EVERYTHING IS FINE'}
-        </div>
+        <div>MARECON 2027 · FLOOR 7</div>
       </header>
 
       <div class={css.scene}>
         <svg viewBox={'0 0 ' + SCENE_W + ' ' + SCENE_H} width="100%">
-          <defs>
-            <linearGradient id="sweepGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stopColor="#7fe0a8" stopOpacity="0" />
-              <stop offset="0.5" stopColor="#7fe0a8" stopOpacity="0.16" />
-              <stop offset="1" stopColor="#7fe0a8" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
           {/* ---- floor ---- */}
           <polygon
             class={css.floor}
@@ -491,37 +454,14 @@ export const Office = () => {
             ])}
           />
 
-          {/* taped queue zone by the cooler */}
-          <polygon
-            class={css.tape}
-            points={poly([
-              Pt(10.8, 8.6),
-              Pt(12.3, 8.6),
-              Pt(12.3, 9.8),
-              Pt(10.8, 9.8),
-            ])}
-          />
-          <text
-            class={css.floorText}
-            transform={
-              'matrix(1,0.5,-1,0.5,' +
-              px(11.15, 9.15) +
-              ',' +
-              py(11.15, 9.15) +
-              ')'
-            }
-          >
-            QUEUE HERE
-          </text>
-
-          {/* unauthorized break rug */}
+          {/* the break rug */}
           <polygon
             class={css.rug}
             points={poly([
-              Pt(0.9, 8.7),
-              Pt(3.1, 8.7),
-              Pt(3.1, 9.9),
-              Pt(0.9, 9.9),
+              Pt(0.9, 9.8),
+              Pt(3.4, 9.8),
+              Pt(3.4, 11.1),
+              Pt(0.9, 11.1),
             ])}
           />
 
@@ -545,84 +485,42 @@ export const Office = () => {
             ])}
           />
 
-          {/* posters on the y=0 wall */}
-          <polygon
-            class={css.poster}
-            points={poly([
-              [px(3.0, 0), py(3.0, 0) - 108],
-              [px(5.4, 0), py(5.4, 0) - 108],
-              [px(5.4, 0), py(5.4, 0) - 34],
-              [px(3.0, 0), py(3.0, 0) - 34],
-            ])}
+          {/* posters on the y=0 wall (kitten placeholders) */}
+          <polygon class={css.posterFrame} points={posterFramePts(POSTER_A)} />
+          <image
+            href={placeholder}
+            width={posterW(POSTER_A)}
+            height={posterH(POSTER_A)}
+            preserveAspectRatio="xMidYMid slice"
+            transform={posterXf(POSTER_A)}
           />
-          <text
-            class={css.posterBig}
-            transform={
-              'matrix(1,0.5,0,1,' + px(3.35, 0) + ',' + (py(3.35, 0) - 76) + ')'
-            }
-          >
-            SMILE!
-          </text>
-          <text
-            class={css.posterSmall}
-            transform={
-              'matrix(1,0.5,0,1,' + px(3.2, 0) + ',' + (py(3.2, 0) - 44) + ')'
-            }
-          >
-            MANDATORY FUN — DEPT. OF MORALE
-          </text>
-          <polygon
-            class={css.posterWarm}
-            points={poly([
-              [px(7.4, 0), py(7.4, 0) - 112],
-              [px(10.6, 0), py(10.6, 0) - 112],
-              [px(10.6, 0), py(10.6, 0) - 30],
-              [px(7.4, 0), py(7.4, 0) - 30],
-            ])}
+          <polygon class={css.posterFrame} points={posterFramePts(POSTER_B)} />
+          <image
+            href={logo}
+            width={posterW(POSTER_B)}
+            height={posterH(POSTER_B)}
+            preserveAspectRatio="xMidYMid slice"
+            transform={posterXf(POSTER_B)}
           />
-          <text
-            class={css.posterMid}
-            transform={
-              'matrix(1,0.5,0,1,' + px(7.75, 0) + ',' + (py(7.75, 0) - 78) + ')'
-            }
-          >
-            EFFICIENCY
-          </text>
-          <text
-            class={css.posterSmallDark}
-            transform={
-              'matrix(1,0.5,0,1,' + px(7.85, 0) + ',' + (py(7.85, 0) - 52) + ')'
-            }
-          >
-            IS FRIENDSHIP™ · POSTER 14-B
-          </text>
 
           {/* door on the x=0 wall */}
           <polygon
             class={css.door}
             points={poly([
-              [px(0, 5.2), py(0, 5.2) - 92],
-              [px(0, 7.0), py(0, 7.0) - 92],
-              Pt(0, 7.0),
-              Pt(0, 5.2),
+              [px(0, 5.6), py(0, 5.6) - 92],
+              [px(0, 7.6), py(0, 7.6) - 92],
+              Pt(0, 7.6),
+              Pt(0, 5.6),
             ])}
           />
           <text
             class={css.doorSign}
             transform={
-              'matrix(1,-0.5,0,1,' +
-              px(0, 6.15) +
-              ',' +
-              (py(0, 6.15) - 100) +
-              ')'
+              'matrix(1,-0.5,0,2,' + px(0, 7) + ',' + (py(0, 7) - 102) + ')'
             }
           >
-            EXIT — FORM E-1 REQUIRED
+            EXIT
           </text>
-          <polyline
-            class={css.tapeLine}
-            points={poly([Pt(0.4, 6.1), Pt(3.4, 6.1)])}
-          />
 
           {/* ---- sort layer: furniture + ponies ---- */}
           <g ref={sortRef}>
@@ -631,9 +529,9 @@ export const Office = () => {
                 key={'d1' + i}
                 r={r}
                 h={DESK_H}
-                top="#26312a"
-                left="#161d18"
-                right="#0e130f"
+                top="#6e5c4c"
+                left="#584a3d"
+                right="#463a30"
               />
             ))}
             {DESKS_ROW2.map((r, i) => (
@@ -641,9 +539,9 @@ export const Office = () => {
                 key={'d2' + i}
                 r={r}
                 h={DESK_H}
-                top="#26312a"
-                left="#161d18"
-                right="#0e130f"
+                top="#6e5c4c"
+                left="#584a3d"
+                right="#463a30"
               />
             ))}
             {DESKS_ROW1.concat(DESKS_ROW2).map((r, i) => (
@@ -651,47 +549,36 @@ export const Office = () => {
                 key={'p' + i}
                 r={[r[0], r[1] - 0.28, r[2], 0.28]}
                 h={PART_H}
-                top="#2c382f"
-                left="#1b231d"
-                right="#121813"
+                top="#5d6670"
+                left="#4a525b"
+                right="#3c434b"
               />
             ))}
-            {[DESKS_ROW1[0], DESKS_ROW1[2], DESKS_ROW2[1], DESKS_ROW2[3]].map(
-              (r, i) => (
-                <IsoBox
-                  key={'m' + i}
-                  r={[r[0] + 0.6, r[1] + 0.2, 0.9, 0.55]}
-                  h={24}
-                  z={DESK_H}
-                  top="#0b100c"
-                  left="#0d1512"
-                  right="#080d0a"
-                />
-              ),
-            )}
+
             <IsoBox
               r={COOLER}
-              h={86}
-              top="#233d46"
-              left="#182c33"
-              right="#101f24"
+              h={82}
+              top="#6f93a6"
+              left="#59788a"
+              right="#476174"
             />
             <IsoBox
-              r={[COOLER[0] + 0.19, COOLER[1] + 0.19, 0.62, 0.62]}
-              h={34}
-              z={86}
-              top="#9fdcff"
-              left="#5aa8cf"
-              right="#3f7ea1"
+              className={css.coolerTop}
+              r={[COOLER[0] + 0.19, COOLER[1] + 0.52, 0.7, 0.7]}
+              h={24}
+              z={10}
+              top="#cfe8f7"
+              left="#9cc4dd"
+              right="#7aa6c2"
             />
 
             {/* Nawni */}
             <g
               ref={nawniRef}
-              data-key="16"
+              data-key="18"
               class={css.pony}
-              transform={'translate(' + px(7.4, 8.6) + ',' + py(7.4, 8.6) + ')'}
-              onPointerDown={() => fileIncident('NAWNI')}
+              transform={'translate(' + px(8.2, 9.8) + ',' + py(8.2, 9.8) + ')'}
+              onPointerDown={() => startle('NAWNI')}
             >
               <ellipse class={css.shadow} cx="0" cy="0" rx="34" ry="10" />
               <g ref={nawniInner}>
@@ -712,21 +599,22 @@ export const Office = () => {
                 />
               </g>
               <text
-                ref={nawniTag}
                 class={css.tag}
                 y="-132"
                 textAnchor="middle"
                 pointerEvents="none"
-              />
+              >
+                NAWNI
+              </text>
             </g>
 
             {/* Smiley */}
             <g
               ref={smileyRef}
-              data-key="18.7"
+              data-key="21.1"
               class={css.pony}
-              transform={'translate(' + px(9.8, 8.9) + ',' + py(9.8, 8.9) + ')'}
-              onPointerDown={() => fileIncident('SMILEY')}
+              transform={'translate(' + px(11, 10.1) + ',' + py(11, 10.1) + ')'}
+              onPointerDown={() => startle('SMILEY')}
             >
               <ellipse class={css.shadow} cx="0" cy="0" rx="32" ry="9" />
               <g ref={smileyInner}>
@@ -747,23 +635,24 @@ export const Office = () => {
                 />
               </g>
               <text
-                ref={smileyTag}
                 class={css.tag}
                 y="-124"
                 textAnchor="middle"
                 pointerEvents="none"
-              />
+              >
+                SMILEY
+              </text>
             </g>
 
             {/* Comfy: laying in the corner, breathing, dreaming of freedom */}
             <g
-              data-key="11.1"
+              data-key="12.4"
               class={css.pony}
               transform={
-                'translate(' + px(1.95, 9.15) + ',' + py(1.95, 9.15) + ')'
+                'translate(' + px(2.1, 10.3) + ',' + py(2.1, 11.3) + ')'
               }
             >
-              <ellipse class={css.shadow} cx="0" cy="0" rx="52" ry="12" />
+              <ellipse class={css.shadow} cx="0" cy="-16" rx="52" ry="12" />
               <g class={css.comfyBreathe}>
                 <image
                   href={comfyImg}
@@ -774,32 +663,24 @@ export const Office = () => {
                 />
               </g>
               <text
-                class={css.tag + ' ' + css.tagComfy}
+                class={css.tag}
                 y="-104"
                 textAnchor="middle"
                 pointerEvents="none"
               >
-                COMFY · ON BREAK (UNAUTHORIZED)
+                COMFY
               </text>
-              <text class={css.z + ' ' + css.z1} x="64" y="-80">
-                z
-              </text>
-              <text class={css.z + ' ' + css.z2} x="72" y="-86">
-                z
-              </text>
-              <text class={css.z + ' ' + css.z3} x="80" y="-92">
-                Z
-              </text>
+              <ZFlow />
             </g>
           </g>
 
-          {/* supervisor sweep light band */}
+          {/* the warm band that makes everyone look busy */}
           <g class={css.bandG} pointerEvents="none">
             <rect
               x="-90"
-              y="-140"
-              width="180"
-              height="1000"
+              y="-160"
+              width="200"
+              height="1150"
               fill="url(#sweepGrad)"
               transform="skewY(26.57)"
             />
@@ -807,25 +688,25 @@ export const Office = () => {
         </svg>
       </div>
 
+      <div class={css.timerWrapper}>
+        Con starts in <Timer />
+      </div>
+
       <nav class={css.actions}>
         <a class={css.keybtn} href={ARCHIVE_URL}>
           <span class={css.keyTitle}>ARCHIVE</span>
-          <span class={css.keySub}>PRE-ACQUISITION MEMORIES ↗</span>
+          <span class={css.keySub}>Check it out ↗</span>
         </a>
         <a
-          class={css.keybtn + ' ' + css.primary}
+          class={cn(css.keybtn, css.primary)}
           href={VOLUNTEER_FORM_LINK}
           target="_blank"
           rel="noreferrer"
         >
           <span class={css.keyTitle}>VOLUNTEER</span>
-          <span class={css.keySub}>SUBMIT FORM V-27B ↗</span>
+          <span class={css.keySub}>please?</span>
         </a>
       </nav>
-
-      <div class={css.hint}>
-        TIP: CLICK A WALKING MASCOT TO FILE AN INCIDENT REPORT
-      </div>
     </div>
   );
 };
