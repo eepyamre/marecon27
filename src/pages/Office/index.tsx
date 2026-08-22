@@ -202,10 +202,6 @@ const IsoBox = ({ r, h = 44, z = 0, top, left, right, ...props }: BoxProps) => {
   );
 };
 
-// posters: kitten placeholders sheared into the wall plane.
-// image width = horizontal extent of the wall span (HX per tile); the shear
-// turns that into along-wall length. (Using the true wall length here would
-// overshoot the frame — that bug put the kittens outside their frames.)
 const POSTER_A = { x1: 2.6, x2: 5.6, zTop: 122, zBot: 24 };
 const POSTER_B = { x1: 7.6, x2: 11.2, zTop: 120, zBot: 20 };
 const posterW = (p: { x1: number; x2: number }) => (p.x2 - p.x1) * HX;
@@ -409,7 +405,9 @@ export const Office = () => {
   return (
     <div class={css.stage}>
       <header class={css.topbar}>
-        <div>MARECON 2027 · FLOOR 7</div>
+        <div>
+          MARECON<span class={css.tm}>™</span> 2027
+        </div>
       </header>
 
       <div class={css.scene}>
@@ -580,7 +578,7 @@ export const Office = () => {
               transform={'translate(' + px(8.2, 9.8) + ',' + py(8.2, 9.8) + ')'}
               onPointerDown={() => startle('NAWNI')}
             >
-              <ellipse class={css.shadow} cx="0" cy="0" rx="34" ry="10" />
+              <ellipse class={css.shadow} cx="-8" cy="-4" rx="48" ry="10" />
               <g ref={nawniInner}>
                 <image
                   href={nawniImg}
@@ -616,7 +614,7 @@ export const Office = () => {
               transform={'translate(' + px(11, 10.1) + ',' + py(11, 10.1) + ')'}
               onPointerDown={() => startle('SMILEY')}
             >
-              <ellipse class={css.shadow} cx="0" cy="0" rx="32" ry="9" />
+              <ellipse class={css.shadow} cx="0" cy="-8" rx="48" ry="9" />
               <g ref={smileyInner}>
                 <image
                   href={smileyImg}

@@ -35,9 +35,10 @@ export const routes = {
 };
 
 const Root = () => {
-  const { path } = useLocation();
-  if (path.startsWith('/office')) return <Office />;
-  return <MainLayout />;
+  // const { path } = useLocation();
+  // if (path.startsWith('/office')) return <Office />;
+  // return <MainLayout />;
+  return <Office />;
 };
 
 export const App = () => {
