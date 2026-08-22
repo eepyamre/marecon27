@@ -1,0 +1,357 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+$green: #7fe0a8;
+$green-dim: #4ba176;
+$amber: #ffc46b;
+$amber-dim: #a97c33;
+$ink: #030806;
+
+.stage {
+  position: fixed;
+  inset: 0;
+  background: $ink;
+  overflow: hidden;
+  font-family: 'VT323', 'Courier New', monospace;
+  color: $green;
+  user-select: none;
+}
+
+/* CRT scanlines + vignette, same as the terminal page */
+.scan {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.22) 3px,
+      rgba(0, 0, 0, 0.22) 4px
+    ),
+    radial-gradient(
+      ellipse at center,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(0, 0, 0, 0.75) 100%
+    );
+  mix-blend-mode: multiply;
+}
+
+/* --- header bar -------------------------------------------------------- */
+.topbar {
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  right: 24px;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  letter-spacing: 1px;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba($green, 0.45);
+}
+
+.fine,
+.fineWarn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $amber;
+  text-shadow: 0 0 8px rgba($amber, 0.4);
+  white-space: nowrap;
+}
+
+.fineWarn {
+  color: #ff8a5c;
+  text-shadow: 0 0 10px rgba(255, 138, 92, 0.6);
+}
+
+.fineDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: $amber;
+  box-shadow: 0 0 8px $amber;
+  animation: blink 1.2s steps(2, start) infinite;
+
+  .fineWarn & {
+    background: #ff8a5c;
+    box-shadow: 0 0 8px #ff8a5c;
+    animation-duration: 0.4s;
+  }
+}
+
+/* --- the iso scene ------------------------------------------------------ */
+.scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 40px 12px 90px;
+}
+
+.scene svg {
+  width: min(96vw, 1040px);
+  height: auto;
+  overflow: visible;
+}
+
+.floor {
+  fill: #0c140e;
+}
+
+.gridline {
+  stroke: rgba($green, 0.07);
+  stroke-width: 1;
+}
+
+.slabL {
+  fill: #050a07;
+}
+
+.tape {
+  fill: none;
+  stroke: rgba(216, 180, 74, 0.55);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+}
+
+.floorText {
+  fill: rgba(216, 180, 74, 0.6);
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+.rug {
+  fill: rgba($amber, 0.045);
+  stroke: rgba($amber, 0.3);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+/* walls */
+.wallY {
+  fill: #141b15;
+}
+
+.wallX {
+  fill: #0e140f;
+}
+
+/* posters */
+.poster {
+  fill: #cfd8c9;
+}
+
+.posterWarm {
+  fill: #d8c49a;
+}
+
+.posterBig {
+  fill: #24382c;
+  font-size: 30px;
+  letter-spacing: 2px;
+}
+
+.posterMid {
+  fill: #573f16;
+  font-size: 26px;
+  letter-spacing: 2px;
+}
+
+.posterSmall {
+  fill: #46564c;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.posterSmallDark {
+  fill: #6b5626;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.door {
+  fill: #0a0d0b;
+  stroke: #233026;
+  stroke-width: 1.5;
+}
+
+.doorSign {
+  fill: #5f7c69;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.tapeLine {
+  fill: none;
+  stroke: rgba(216, 180, 74, 0.5);
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+
+/* --- ponies ------------------------------------------------------------- */
+.pony {
+  cursor: pointer;
+}
+
+.shadow {
+  fill: #000;
+  opacity: 0.3;
+}
+
+.tag {
+  fill: $green;
+  font-size: 12px;
+  letter-spacing: 1px;
+  paint-order: stroke;
+  stroke: rgba(3, 8, 6, 0.85);
+  stroke-width: 3px;
+}
+
+.tagBad {
+  fill: $amber;
+}
+
+.tagComfy {
+  fill: $amber-dim;
+  font-size: 11px;
+}
+
+/* comfy's unauthorized breathing */
+.comfyBreathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: breathe 3.8s ease-in-out infinite;
+}
+
+/* floating sleepy zs */
+.z {
+  fill: $green;
+  font-size: 15px;
+  opacity: 0;
+}
+
+.z1 { animation: zfloat 3.2s linear infinite; }
+.z2 { animation: zfloat 3.2s linear 1.05s infinite; }
+.z3 { animation: zfloat 3.2s linear 2.1s infinite; font-size: 18px; }
+
+/* supervisor sweep band */
+.bandG {
+  opacity: 0;
+}
+
+.sweeping .bandG {
+  opacity: 1;
+  animation: bandMove 2.7s linear;
+}
+
+/* --- links / hint -------------------------------------------------------- */
+.actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 58px;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+
+.keybtn {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  padding: 10px 26px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: #d6f4e4;
+  background: linear-gradient(180deg, #12241a 0%, #08130c 100%);
+  border: 1px solid $green-dim;
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.85),
+    inset 0 0 16px rgba($green, 0.12);
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+
+.keyTitle {
+  font-size: 24px;
+  letter-spacing: 4px;
+}
+
+.keySub {
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  color: $green-dim;
+}
+
+.keybtn:hover {
+  transform: translateY(3px);
+  border-color: $green;
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.85),
+    inset 0 0 22px rgba($green, 0.2);
+}
+
+.keybtn.primary {
+  border-color: $amber-dim;
+  color: #ffd9a0;
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.85),
+    inset 0 0 16px rgba($amber, 0.12);
+}
+
+.keybtn.primary .keySub {
+  color: $amber-dim;
+}
+
+.keybtn.primary:hover {
+  border-color: $amber;
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.85),
+    inset 0 0 22px rgba($amber, 0.22);
+}
+
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 26px;
+  z-index: 4;
+  text-align: center;
+  font-size: 17px;
+  letter-spacing: 1px;
+  color: $green-dim;
+  pointer-events: none;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.045); }
+}
+
+@keyframes zfloat {
+  0% { transform: translateY(0); opacity: 0; }
+  18% { opacity: 0.9; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+
+@keyframes bandMove {
+  from { transform: translateX(-420px); }
+  to { transform: translateX(1560px); }
+}
+
+@media (max-width: 760px) {
+  .topbar { font-size: 15px; }
+  .hint { display: none; }
+}

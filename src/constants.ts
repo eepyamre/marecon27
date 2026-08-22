@@ -12,3 +12,4 @@ export const PANELS_FORM_LINK =
 export const VENDORS_FORM_LINK =
   'https://docs.google.com/forms/d/e/1FAIpQLSePs4cjdZDOAe9z6mLDCzHDvCNtPbcb3yXGKIkl-B497qTLzg/closedform';
 export const THREAD_LINK = 'https://boards.4chan.org/mlp/thread/43143694';
+export const ARCHIVE_URL = 'https://2026.marecon.live/';

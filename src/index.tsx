@@ -1,6 +1,11 @@
 import { MainLayout } from '@/layouts/MainLayout';
 import '@/styles.scss';
-import { LocationProvider, hydrate, prerender as ssr } from 'preact-iso';
+import {
+  LocationProvider,
+  hydrate,
+  prerender as ssr,
+  useLocation,
+} from 'preact-iso';
 
 import {
   Archive,
@@ -10,6 +15,7 @@ import {
   Home,
   Mascots,
   Nawni,
+  Office,
   Schedule,
   Smiley,
   Vendors,
@@ -28,10 +34,16 @@ export const routes = {
   ['/vendors']: Vendors,
 };
 
+const Root = () => {
+  const { path } = useLocation();
+  if (path.startsWith('/office')) return <Office />;
+  return <MainLayout />;
+};
+
 export const App = () => {
   return (
     <LocationProvider>
-      <MainLayout />
+      <Root />
     </LocationProvider>
   );
 };

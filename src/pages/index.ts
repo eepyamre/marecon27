@@ -1,4 +1,5 @@
 export * from './Archive';
+export * from './Office';
 export * from './Home';
 export * from './FAQ';
 export * from './Mascots';
