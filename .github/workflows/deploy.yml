@@ -26,6 +26,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-      - name: Deploy via SCP
+      - name: Deploy
         run: |
           scp -P ${{ secrets.SERVER_PORT }} -o StrictHostKeyChecking=no -r ./dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}
