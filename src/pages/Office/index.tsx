@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import comfyImg from '@/assets/office/Comfy.png';
 import nawniImg from '@/assets/office/Nawni.png';
 import smileyImg from '@/assets/office/Smiley.png';
+import boing from '@/assets/office/boing2.mp3';
 import logo from '@/assets/office/non.png';
 import placeholder from '@/assets/paceholder.png';
 
@@ -310,7 +311,7 @@ export const Office = () => {
 
         if (p.startleUntil > now) {
           // pure startle-bounce: squish, hop, wiggle
-          p.phase += dt * 18;
+          p.phase += dt * 24;
           squash = 1 + Math.sin(p.phase) * 0.16;
           hop = Math.abs(Math.sin(p.phase * 0.5)) * 10;
         } else if (p.mode === 'idle') {
@@ -397,6 +398,10 @@ export const Office = () => {
   }, []);
 
   const startle = (which: string) => {
+    const audio = new Audio(boing);
+    audio.volume = 0.75;
+    audio.play();
+
     const p = poniesRef.current.find((q) => q.name === which);
     if (!p) return;
     p.startleUntil = performance.now() + 850;
@@ -442,15 +447,6 @@ export const Office = () => {
               y2={py(ROOM_W, j)}
             />
           ))}
-          <polygon
-            class={css.slabL}
-            points={poly([
-              Pt(0, ROOM_D),
-              Pt(ROOM_W, ROOM_D),
-              [px(ROOM_W, ROOM_D), py(ROOM_W, ROOM_D) + 18],
-              [px(0, ROOM_D), py(0, ROOM_D) + 18],
-            ])}
-          />
 
           {/* the break rug */}
           <polygon
@@ -578,7 +574,7 @@ export const Office = () => {
               transform={'translate(' + px(8.2, 9.8) + ',' + py(8.2, 9.8) + ')'}
               onPointerDown={() => startle('NAWNI')}
             >
-              <ellipse class={css.shadow} cx="-8" cy="-4" rx="48" ry="10" />
+              <ellipse class={css.shadow} cx="0" cy="-4" rx="68" ry="10" />
               <g ref={nawniInner}>
                 <image
                   href={nawniImg}
@@ -695,15 +691,17 @@ export const Office = () => {
           <span class={css.keyTitle}>ARCHIVE</span>
           <span class={css.keySub}>Check it out ↗</span>
         </a>
-        <a
-          class={cn(css.keybtn, css.primary)}
-          href={VOLUNTEER_FORM_LINK}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <span class={css.keyTitle}>VOLUNTEER</span>
-          <span class={css.keySub}>please?</span>
-        </a>
+        {VOLUNTEER_FORM_LINK && (
+          <a
+            class={cn(css.keybtn, css.primary)}
+            href={VOLUNTEER_FORM_LINK}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span class={css.keyTitle}>VOLUNTEER</span>
+            <span class={css.keySub}>please?</span>
+          </a>
+        )}
       </nav>
     </div>
   );

@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-/* lamp-lit dusk office: warm charcoal field, muted wood, dusty blue accents */
 $bg: #28231d;
 $bg-light: #37312a;
 $ink: #b8a98f;
@@ -20,7 +19,6 @@ $blue: #a5b7d8;
   user-select: none;
 }
 
-/* --- header bar ----------------------------------------------------------- */
 .topbar {
   position: absolute;
   top: 18px;
@@ -37,7 +35,6 @@ $blue: #a5b7d8;
   font-family: 'Courier New', Courier, monospace;
 }
 
-/* --- the iso scene --------------------------------------------------------- */
 .scene {
   position: absolute;
   inset: 0;
@@ -64,10 +61,6 @@ $blue: #a5b7d8;
   stroke-width: 1;
 }
 
-.slabL {
-  fill: #2b2620;
-}
-
 .tape {
   fill: none;
   stroke: rgba(216, 180, 100, 0.5);
@@ -88,7 +81,6 @@ $blue: #a5b7d8;
   stroke-dasharray: 6 5;
 }
 
-/* walls */
 .wallY {
   fill: #463d33;
 }
@@ -97,7 +89,6 @@ $blue: #a5b7d8;
   fill: #3a332a;
 }
 
-/* posters */
 .posterFrame {
   fill: #efe6d4;
   stroke: #6b5d49;

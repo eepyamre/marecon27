@@ -1,38 +1,11 @@
-import { MainLayout } from '@/layouts/MainLayout';
 import '@/styles.scss';
-import {
-  LocationProvider,
-  hydrate,
-  prerender as ssr,
-  useLocation,
-} from 'preact-iso';
+import { LocationProvider, hydrate, prerender as ssr } from 'preact-iso';
 
-import {
-  Archive,
-  Comfy,
-  FAQ,
-  HQ,
-  Home,
-  Mascots,
-  Nawni,
-  Office,
-  Schedule,
-  Smiley,
-  Vendors,
-} from './pages';
+import { Office } from './pages';
 
-export const routes = {
-  ['/']: Home,
-  ['/faq']: FAQ,
-  ['/archive']: Archive,
-  ['/hq']: HQ,
-  ['/mascots']: Mascots,
-  ['/nawni']: Nawni,
-  ['/smiley']: Smiley,
-  ['/comfy']: Comfy,
-  ['/schedule']: Schedule,
-  ['/vendors']: Vendors,
-};
+// export const routes = {
+//   ['/']: Office,
+// };
 
 const Root = () => {
   // const { path } = useLocation();
