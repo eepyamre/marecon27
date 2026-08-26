@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap');
 
-@font-face {
-  font-family: Magazine;
-  src: url('./assets/Magazine.ttf');
-}
+// @font-face {
+//   font-family: Magazine;
+//   src: url('./assets/Magazine.ttf');
+// }
 
 @layer {
   :root {
@@ -30,18 +30,6 @@
   }
 
   body {
-    background-color: var(--background);
-    font-family: var(--textFont);
-    overflow-x: hidden;
-    background-image:
-      url('./assets/sm2.png'), url('./assets/cc1.png'), url('./assets/nw2.png');
-    background-size: 300px;
-    background-position:
-      left bottom,
-      right bottom,
-      right top;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
   }
 
   main {
