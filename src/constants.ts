@@ -8,4 +8,4 @@ export const PANELS_FORM_LINK = '#';
 export const VENDORS_FORM_LINK = '#';
 export const THREAD_LINK = '#';
 export const ARCHIVE_URL = 'https://2026.marecon.live/';
-export const VOLUNTEER_FORM_LINK = null; //'#';
+export const VOLUNTEER_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSe_y_3YgQRM7hPjH2ci-UswMVbTLKGTAMXc9k27RZki8V7jWw/viewform?usp=dialog';
